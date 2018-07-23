@@ -7,12 +7,12 @@
 
 from distutils.core import setup
 
-setup(name         = 'xroms',
-      version      = '0.1',
-      description  = 'ROMS postprocessing tools in python based on xarray',
-      author       = 'Bjørn Ådlandsvik',
-      author_email = 'bjorn@imr.no',
-      url          = 'https://github.com/bjornaa/roppy',
-      packages     = ['xroms']
+setup(name='xroms',
+      version='0.1',
+      description='ROMS postprocessing tools in python based on xarray',
+      author='Bjørn Ådlandsvik',
+      author_email='bjorn@imr.no',
+      url='https://github.com/bjornaa/xroms',
+      packages=['xroms'],
+      requires=['numpy', 'scipy', 'xarray']
       )
-

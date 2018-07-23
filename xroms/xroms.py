@@ -1,6 +1,7 @@
 import numpy as np
 import xarray as xr
-import depth
+# from .depth import sdepth
+from . import depth
 
 
 def roms_dataset(roms_file, subgrid=None):
@@ -17,9 +18,9 @@ def roms_dataset(roms_file, subgrid=None):
     A0 = xr.open_dataset(roms_file)
 
     # Select the variables
-    vars = [var for var in grid_vars + data_vars if var in A0]
+    variables = [var for var in grid_vars + data_vars if var in A0]
 
-    A = xr.Dataset({var: A0[var] for var in vars})
+    A = xr.Dataset({var: A0[var] for var in variables})
 
     # Fill in missing coordinate variables
     # --- Horizontal ---
@@ -65,14 +66,13 @@ def roms_dataset(roms_file, subgrid=None):
                                     'units': 'meter',
                                     'positive': 'up'})
 
-        z_w = depth.sdepth(
-            A.h, np.float32(A0.hc), A0.Cs_w,
-            stagger='w', Vtransform=Vtransform)
+        z_w = depth.sdepth(A.h, np.float32(A0.hc), A0.Cs_w,
+                           stagger='w', Vtransform=Vtransform)
         z_w = xr.DataArray(z_w.astype('float32'),
-                             dims=('s_w', 'eta_rho', 'xi_rho'),
-                             attrs={'long_name': 'depth of s-interfaces',
-                                    'units': 'meter',
-                                    'positive': 'up'})
+                           dims=('s_w', 'eta_rho', 'xi_rho'),
+                           attrs={'long_name': 'depth of s-interfaces',
+                                  'units': 'meter',
+                                  'positive': 'up'})
 
         A.coords['z_rho'] = (('s_rho', 'eta_rho', 'xi_rho'), z_rho)
         A.coords['z_w'] = z_w
@@ -130,6 +130,7 @@ def zslice_ds(A, z):
         data['salt'] = zslice_da(A.salt, z)
 
     B = xr.Dataset(data)
+    return B
 
 
 def zslice(D, z):
@@ -140,7 +141,7 @@ def zslice(D, z):
 
 
 # ------------------------------------------------------------
-def subgrid(A, subgrid, stagger='outer'):
+def subgrid(A, subgrid_spec, stagger='outer'):
     """Make a ROMS xarray Dataset on a horizontal subgrid"""
 
     # Bestemme om endepunkter skal med eller ikke
@@ -153,7 +154,7 @@ def subgrid(A, subgrid, stagger='outer'):
     # Hva med slicing, inner or outer velocity?
     # Vite hva man har (len(A.xi_u) vs. len(A.xi_rho)
 
-    x0, x1, y0, y1 = subgrid
+    x0, x1, y0, y1 = subgrid_spec
 
     # Mangler test om plass
     sub = dict(xi_rho=slice(x0, x1), eta_rho=slice(y0, y1))

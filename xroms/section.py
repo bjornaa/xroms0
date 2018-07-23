@@ -14,8 +14,8 @@ def section(A, X, Y):
     # Distance between section points
     pm = A.pm.interp(xi_rho=X0, eta_rho=Y0).values
     pn = A.pn.interp(xi_rho=X0, eta_rho=Y0).values
-    dX = 2 * np.diff(X) / (pm[:-1] + pm[1:])
-    dY = 2 * np.diff(Y) / (pm[:-1] + pm[1:])
+    dX = 2 * np.diff(X) / (pm[:-1] + pn[1:])
+    dY = 2 * np.diff(Y) / (pm[:-1] + pn[1:])
     dS = np.sqrt(dX * dX + dY * dY)
     # Cumulative distance along the section
     distance = np.concatenate(([0], np.cumsum(dS))) / 1000.0  # unit = km
@@ -72,7 +72,6 @@ def section(A, X, Y):
         B['dZ'] = xr.DataArray(V, dims=['s_rho', 'distance'])
 
         B['area'] = B.dZ * B.dS   # Unit = m**2
-
 
     return B
 
