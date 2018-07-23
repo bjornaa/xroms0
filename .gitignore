@@ -1,0 +1,10 @@
+# Data files
+*nc
+*.npy
+*.wkb
+
+# python stuff
+__pycache__/*
+
+# Hidden directories
+.*/*
