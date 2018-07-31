@@ -13,7 +13,7 @@ def xy2ll(A, x, y):
 
 
 # Metoden som velges må returnere Dataarray, slik som xy2ll
-def ll2xy1(A, lon, lat):
+def ll2xy(A, lon, lat):
     gLon = A['lon_rho'].data.ravel()
     gLat = A['lat_rho'].data.ravel()
     X0 = A['xi_rho'].data
@@ -35,7 +35,7 @@ def ll2xy1(A, lon, lat):
 #     y, x = bilin_inv(lon, lat, A['lon_rho'].data, A['lat_rho'].data)
 #     return x, y
 
-# Nøyaktigst, men litt seinere enn ll2xy1
+# Nøyaktigst, men litt seinere enn ll2xy
 def ll2xy3(A, lon, lat):
     gLon = A['lon_rho'].data.ravel()
     gLat = A['lat_rho'].data.ravel()
@@ -48,25 +48,4 @@ def ll2xy3(A, lon, lat):
     y = griddata((gLon, gLat), gY, (lon, lat), 'cubic')
     return x, y
 
-
-if __name__ == '__main__':
-
-    import xroms
-
-    A = xroms.roms_dataset('ocean_avg_0014.nc')
-
-    x, y = 170.0, 120.0
-    print(x, y)
-    lon, lat = xy2ll(A, x=x, y=y)
-    print('lon, lat', lon.data, lat.data)
-    print('-----------')
-    x1, y1 = ll2xy1(A, lon, lat)
-    print(x1-x, y1-y)
-    x2, y2 = ll2xy2(A, lon, lat)
-    print(x2-x, y2-y)
-    x3, y3 = ll2xy3(A, lon, lat)
-    print(x3 - x, y3 - y)
-    # print(A.lon_rho.sel(xi_rho=x, eta_rho=y))
-    # print('-----------')
-    # print(A.lat_rho.sel(xi_rho=x, eta_rho=y))
 

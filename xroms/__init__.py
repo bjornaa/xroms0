@@ -13,6 +13,6 @@ from xroms.section import section
 
 from xroms.depth import VerticalSlicer
 
-from . import lonlat
+from xroms.lonlat import ll2xy, xy2ll
 
 

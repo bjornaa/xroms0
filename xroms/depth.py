@@ -27,6 +27,7 @@ from __future__ import (absolute_import, division)
 import numpy as np
 import xarray as xr
 
+
 def sdepth(H, Hc, C, stagger="rho", Vtransform=1):
     """Depth of s-levels
 
@@ -58,30 +59,31 @@ def sdepth(H, Hc, C, stagger="rho", Vtransform=1):
 
     """
     H = np.asarray(H)
-    Hshape = H.shape      # Save the shape of H
-    H = H.ravel()         # and make H 1D for easy shape maniplation
+    Hshape = H.shape  # Save the shape of H
+    H = H.ravel()  # and make H 1D for easy shape maniplation
     C = np.asarray(C)
     N = len(C)
-    outshape = (N,) + Hshape       # Shape of output
+    outshape = (N,) + Hshape  # Shape of output
     if stagger == 'rho':
-        S = -1.0 + (0.5+np.arange(N))/N    # Unstretched coordinates
+        S = -1.0 + (0.5 + np.arange(N)) / N  # Unstretched coordinates
     elif stagger == 'w':
         S = np.linspace(-1.0, 0.0, N)
     else:
         raise ValueError("stagger must be 'rho' or 'w'")
 
-    if Vtransform == 1:         # Default transform by Song and Haidvogel
+    if Vtransform == 1:  # Default transform by Song and Haidvogel
         A = Hc * (S - C)[:, None]
         B = np.outer(C, H)
         return (A + B).reshape(outshape)
 
-    elif Vtransform == 2:       # New transform by Shchepetkin
-        N = Hc*S[:, None] + np.outer(C, H)
-        D = (1.0 + Hc/H)
-        return (N/D).reshape(outshape)
+    elif Vtransform == 2:  # New transform by Shchepetkin
+        N = Hc * S[:, None] + np.outer(C, H)
+        D = (1.0 + Hc / H)
+        return (N / D).reshape(outshape)
 
     else:
         raise ValueError("Unknown Vtransform")
+
 
 # ------------------------------------
 
@@ -94,6 +96,7 @@ def sdepth_w(H, Hc, cs_w):
 
     """
     return sdepth(H, Hc, cs_w, stagger='w')
+
 
 # ------------------------------------------
 # Vertical slicing e.t.c.
@@ -140,8 +143,8 @@ def zslice2(F, S, z):
         raise ValueError("z must be scalar or have shape = F.shape[1:]")
 
     # Flatten all non-vertical dimensions
-    N = F.shape[0]        # Length of vertical dimension
-    M = F.size // N        # Combined length of horizontal dimension(s)
+    N = F.shape[0]  # Length of vertical dimension
+    M = F.size // N  # Combined length of horizontal dimension(s)
     F = F.reshape((N, M))
     S = S.reshape((N, M))
     if z.shape:
@@ -152,7 +155,7 @@ def zslice2(F, S, z):
     # C = np.apply_along_axis(np.searchsorted, 0, S, z)
     # but the following is much faster
     C = np.sum(S < z, axis=0)
-    C = C.clip(1, N-1)
+    C = C.clip(1, N - 1)
 
     # For vectorisation
     # construct index array tuples D and Dm such that
@@ -160,19 +163,20 @@ def zslice2(F, S, z):
     #   F[Dm][i] = F[C[i]-1, i]
     I = np.arange(M, dtype='int')
     D = (C, I)
-    Dm = (C-1, I)
+    Dm = (C - 1, I)
 
     # Compute interpolation weights
-    A = (z - S[Dm]) / (S[D]-S[Dm])
-    A = A.clip(0.0, 1.0)   # Control the extrapolation
+    A = (z - S[Dm]) / (S[D] - S[Dm])
+    A = A.clip(0.0, 1.0)  # Control the extrapolation
 
     # Do the linear interpolation
-    R = (1-A)*F[Dm]+A*F[D]
+    R = (1 - A) * F[Dm] + A * F[D]
 
     # Give the result the correct s
     R = R.reshape(Fshape[1:])
 
     return R
+
 
 # -----------------------------------------------
 
@@ -193,24 +197,24 @@ def s_stretch(N, theta_s, theta_b, stagger='rho', Vstretching=1):
     """
 
     if stagger == 'rho':
-        S = -1.0 + (0.5+np.arange(N))/N
+        S = -1.0 + (0.5 + np.arange(N)) / N
     elif stagger == "w":
-        S = np.linspace(-1.0, 0.0, N+1)
+        S = np.linspace(-1.0, 0.0, N + 1)
     else:
         raise ValueError("stagger must be 'rho' or 'w'")
 
     if Vstretching == 1:
         cff1 = 1.0 / np.sinh(theta_s)
-        cff2 = 0.5 / np.tanh(0.5*theta_s)
-        return ((1.0-theta_b)*cff1*np.sinh(theta_s*S)
-                + theta_b*(cff2*np.tanh(theta_s*(S+0.5))-0.5))
+        cff2 = 0.5 / np.tanh(0.5 * theta_s)
+        return ((1.0 - theta_b) * cff1 * np.sinh(theta_s * S)
+                + theta_b * (cff2 * np.tanh(theta_s * (S + 0.5)) - 0.5))
 
     elif Vstretching == 2:
         a, b = 1.0, 1.0
-        Csur = (1 - np.cosh(theta_s * S))/(np.cosh(theta_s) - 1)
-        Cbot = np.sinh(theta_b * (S+1)) / np.sinh(theta_b) - 1
-        mu = (S+1)**a * (1 + (a/b)*(1-(S+1)**b))
-        return mu*Csur + (1-mu)*Cbot
+        Csur = (1 - np.cosh(theta_s * S)) / (np.cosh(theta_s) - 1)
+        Cbot = np.sinh(theta_b * (S + 1)) / np.sinh(theta_b) - 1
+        mu = (S + 1)**a * (1 + (a / b) * (1 - (S + 1)**b))
+        return mu * Csur + (1 - mu) * Cbot
 
     elif Vstretching == 4:
         C = (1 - np.cosh(theta_s * S)) / (np.cosh(theta_s) - 1)
@@ -219,8 +223,8 @@ def s_stretch(N, theta_s, theta_b, stagger='rho', Vstretching=1):
 
     else:
         raise ValueError("Unknown Vstretching")
-        
-        
+
+
 def invert_s(F, value):
     """Return highest (shallowest) s-value such that F(s,...) = value
     
@@ -248,26 +252,26 @@ def invert_s(F, value):
     #     raise ValueError("z must be scalar or have shape = F.shape[1:]")
 
     # Flatten all non-vertical dimensions
-    N = F.shape[0]          # Length of vertical dimension
-    M = F0.size // N        # Combined length of horizontal dimensions
+    N = F.shape[0]  # Length of vertical dimension
+    M = F0.size // N  # Combined length of horizontal dimensions
     F0 = F0.reshape((N, M))
-    if val.shape:           # Value may be space dependent
+    if val.shape:  # Value may be space dependent
         val = val.reshape((M,))
-    
+
     # Look for highest s-value where G is negative
-    G = (F0[1:, :]-val)*(F0[:-1, :]-val)
-    G = G[::-1, :]    # Reverse
+    G = (F0[1:, :] - val) * (F0[:-1, :] - val)
+    G = G[::-1, :]  # Reverse
     K = N - 1 - (G <= 0).argmax(axis=0)
 
     # Define D such that F[D][i] = F[K[i], i]
     I = np.arange(M)
     D = (K, I)
-    Dm = (K-1, I)
+    Dm = (K - 1, I)
 
     # Compute interpolation weights
-    a = (val - F0[Dm]) / (F0[D]-F0[Dm] + 1e-30)
+    a = (val - F0[Dm]) / (F0[D] - F0[Dm] + 1e-30)
     # Only use 0 <= a <= 1
-    a[np.abs(a - 0.5) > 0.5] = np.nan   #
+    a[np.abs(a - 0.5) > 0.5] = np.nan  #
 
     return D, Dm, a
 
@@ -295,12 +299,9 @@ class VerticalSlicer:
             kmax = G.shape[1]
             R = []
             for t in range(ntimes):
-                M = self.M
                 G0 = G.isel(time=t).values
                 G0 = G0.reshape((kmax, self.M))
-                g = G0.shape
-                R0 = (1-self.a)*G0[self.Dm] + self.a*G0[self.D]
-                r = R0.shape
+                R0 = (1 - self.a) * G0[self.Dm] + self.a * G0[self.D]
                 R0 = R0.reshape(G.shape[2:])
                 R.append(R0)
             R = np.array(R)
@@ -308,7 +309,7 @@ class VerticalSlicer:
             kmax = G.shape[0]
             G0 = G.values
             G0 = G0.reshape((kmax, self.M))
-            R = (1-self.a)*G0[self.Dm] + self.a*G0[self.D]
+            R = (1 - self.a) * G0[self.Dm] + self.a * G0[self.D]
             R = R.reshape(G.shape[1:])
 
         # Return a DataArray
@@ -319,6 +320,3 @@ class VerticalSlicer:
         coords['lon_rho'] = G.coords['lon_rho']
         coords['lat_rho'] = G.coords['lat_rho']
         return xr.DataArray(R, dims=dims, coords=coords, attrs=G.attrs)
-
-
-
