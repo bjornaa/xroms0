@@ -87,37 +87,18 @@ def roms_dataset(roms_file, subgrid=None):
 
 # ---------------------------------
 def zslice_da(F, z):
-    """Horizontal slice of a ROMS DataArray"""
+    """Vertical slice of DataArray at fixed depth"""
 
-    # Slice
-    if 'time' in F.dims:
-        V = []
-        for t in range(len(F['time'])):
-            V0 = depth.zslice(F[t, ...], F.z_rho, -abs(z))
-            V0 = np.where(abs(z) + F.z_rho[0] <= 0, V0, np.nan)
-            V.append(V0)
-        V = np.array(V)
-    else:
-        V = depth.zslice(F, F.z_rho, -abs(z))
-        V = np.where(abs(z) + F.z_rho[0] <= 0, V, np.nan)  # Mask out values below bottom
-
-    # Make a DataArray
-    dims = list(F.dims)
-    dims.remove('s_rho')
-    coords = {dim: F.coords[dim] for dim in dims}
-    coords['z_rho'] = -abs(z)
-    coords['lon_rho'] = F.coords['lon_rho']
-    coords['lat_rho'] = F.coords['lat_rho']
-    attrs = F.attrs
-    # attrs['depth'] = abs(z)
-    return xr.DataArray(V, dims=dims, coords=coords, attrs=attrs)
+    z0 = -abs(z)
+    vslice = depth.VerticalSlicer(F.z_rho, z0)
+    G = vslice(F)
+    G['z_rho'] = z0
+    return G
 
 
 def zslice_ds(A, z):
-    """Horizontal slice av ROMS Dataset"""
-    # Kanskje dårlig idé. Har ikke z_rho på u og v
-    # Må ha z_u og z_v dersom skikkelig.
-    # eller gjøre det på u_rho
+    """Horizontal slice av ROMS Dataset at fixed depth"""
+    # May be unnecessary, hard to get enough flexibility?
 
     data = dict(z_rho=-abs(z))
     if 'u' in A:
@@ -135,9 +116,9 @@ def zslice_ds(A, z):
 
 def zslice(D, z):
     if isinstance(D, xr.DataArray):
-        return zslice_da(D, abs(z))
+        return zslice_da(D, z)
     else:
-        return zslice_ds(D, abs(z))
+        return zslice_ds(D, z)
 
 
 # ------------------------------------------------------------

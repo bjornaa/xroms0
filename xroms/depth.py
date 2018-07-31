@@ -25,7 +25,7 @@
 from __future__ import (absolute_import, division)
 
 import numpy as np
-
+import xarray as xr
 
 def sdepth(H, Hc, C, stagger="rho", Vtransform=1):
     """Depth of s-levels
@@ -59,7 +59,7 @@ def sdepth(H, Hc, C, stagger="rho", Vtransform=1):
     """
     H = np.asarray(H)
     Hshape = H.shape      # Save the shape of H
-    H = H.ravel()         # and make H 1D for easy shape manipulation
+    H = H.ravel()         # and make H 1D for easy shape maniplation
     C = np.asarray(C)
     N = len(C)
     outshape = (N,) + Hshape       # Shape of output
@@ -100,7 +100,7 @@ def sdepth_w(H, Hc, cs_w):
 # ------------------------------------------
 
 
-def zslice(F, S, z):
+def zslice2(F, S, z):
     """Vertical slice of a 3D ROMS field
 
     Vertical interpolation of a field in s-coordinates to
@@ -219,3 +219,106 @@ def s_stretch(N, theta_s, theta_b, stagger='rho', Vstretching=1):
 
     else:
         raise ValueError("Unknown Vstretching")
+        
+        
+def invert_s(F, value):
+    """Return highest (shallowest) s-value such that F(s,...) = value
+    
+    F = DataArray with z_rho as coordinate
+    
+    The vertical dimension in F must be first, axis=0
+    F must not have a time dimension
+
+    Returns D, Dm, a
+    F[Dm] <= value <= F[D] (or opposite inequalities)
+    and a is the interpolation weight:
+    value = (1-a)*F(K-1) + a*F(K)
+    a = nan if this is not possible
+
+    """
+
+    val = value
+    # Work on numpy arrays
+    F0 = F.values
+    # z_rho = F.z_rho.values
+    # s_rho = F.s_rho.values
+    val = np.asarray(val, dtype='float')
+    # Fshape = F.shape  # Save original shape
+    # if val.shape and val.shape != Fshape[1:]:
+    #     raise ValueError("z must be scalar or have shape = F.shape[1:]")
+
+    # Flatten all non-vertical dimensions
+    N = F.shape[0]          # Length of vertical dimension
+    M = F0.size // N        # Combined length of horizontal dimensions
+    F0 = F0.reshape((N, M))
+    if val.shape:           # Value may be space dependent
+        val = val.reshape((M,))
+    
+    # Look for highest s-value where G is negative
+    G = (F0[1:, :]-val)*(F0[:-1, :]-val)
+    G = G[::-1, :]    # Reverse
+    K = N - 1 - (G <= 0).argmax(axis=0)
+
+    # Define D such that F[D][i] = F[K[i], i]
+    I = np.arange(M)
+    D = (K, I)
+    Dm = (K-1, I)
+
+    # Compute interpolation weights
+    a = (val - F0[Dm]) / (F0[D]-F0[Dm] + 1e-30)
+    # Only use 0 <= a <= 1
+    a[np.abs(a - 0.5) > 0.5] = np.nan   #
+
+    return D, Dm, a
+
+
+class VerticalSlicer:
+    """Reduce to horizontal view by slicing
+
+    F = DataArray,  time-independent, first dimension is vertical
+    value = slice value
+
+    If F is not monotonous, returns the shallowest depth where F = value
+
+    """
+
+    def __init__(self, F, value):
+        self.D, self.Dm, self.a = invert_s(F, value)
+        self.M = len(self.a)
+        # self.dims = F.dims
+
+    def __call__(self, G):
+        """G must have same vertical and horizontal dimensions as F"""
+
+        if 'time' in G.dims:
+            ntimes = G.shape[0]
+            kmax = G.shape[1]
+            R = []
+            for t in range(ntimes):
+                M = self.M
+                G0 = G.isel(time=t).values
+                G0 = G0.reshape((kmax, self.M))
+                g = G0.shape
+                R0 = (1-self.a)*G0[self.Dm] + self.a*G0[self.D]
+                r = R0.shape
+                R0 = R0.reshape(G.shape[2:])
+                R.append(R0)
+            R = np.array(R)
+        else:
+            kmax = G.shape[0]
+            G0 = G.values
+            G0 = G0.reshape((kmax, self.M))
+            R = (1-self.a)*G0[self.Dm] + self.a*G0[self.D]
+            R = R.reshape(G.shape[1:])
+
+        # Return a DataArray
+        # Should have something on z_rho?
+        dims = list(G.dims)
+        dims.remove('s_rho')
+        coords = {dim: G.coords[dim] for dim in dims}
+        coords['lon_rho'] = G.coords['lon_rho']
+        coords['lat_rho'] = G.coords['lat_rho']
+        return xr.DataArray(R, dims=dims, coords=coords, attrs=G.attrs)
+
+
+
