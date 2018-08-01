@@ -30,7 +30,7 @@ def section(A, X, Y):
     # Initiate the section Dataset
     B = xr.Dataset(dict(xi_rho=X, eta_rho=Y, s_rho=B0.s_rho))
 
-    # Weights for trapesoidal integration
+    # Weights for trapezoidal integration
     V = 0.5*(np.concatenate(([0], dS)) + np.concatenate((dS, [0])))
     B['dS'] = xr.DataArray(V, dims=['distance'], coords=dict(distance=distance))
 
