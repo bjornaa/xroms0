@@ -1,6 +1,5 @@
 import numpy as np
 import xarray as xr
-# from .depth import sdepth
 from . import depth
 
 
@@ -161,4 +160,3 @@ if __name__ == '__main__':
     A = roms_dataset('ocean_avg_0014.nc')
 
     # B = zslice(A, 'temp', 50)
-

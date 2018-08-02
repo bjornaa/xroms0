@@ -157,7 +157,7 @@ def zslice2(F, S, z):
     C = np.sum(S < z, axis=0)
     C = C.clip(1, N - 1)
 
-    # For vectorisation
+    # For vectorization
     # construct index array tuples D and Dm such that
     #   F[D][i]  = F[C[i], i]
     #   F[Dm][i] = F[C[i]-1, i]
@@ -227,9 +227,9 @@ def s_stretch(N, theta_s, theta_b, stagger='rho', Vstretching=1):
 
 def invert_s(F, value):
     """Return highest (shallowest) s-value such that F(s,...) = value
-    
+
     F = DataArray with z_rho as coordinate
-    
+
     The vertical dimension in F must be first, axis=0
     F must not have a time dimension
 
