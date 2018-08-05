@@ -1,19 +1,50 @@
 import numpy as np
 from scipy.interpolate import griddata
+import xarray as xr
 # from sample import bilin_inv
+
+# Desired behavior:
+# x, y should have same shape,
+# return lon, lat DataArrays of same shape
+# return DataArr out if DataArr in?
+#    array, list in -> array out
+#     scalars in -> scalars out
+#
+# Alternative: work like xarray indexing and interp
+#
 
 
 def xy2ll(A, x, y):
+    """Convert from grid coordinates to longitude/latitude"""
 
-    lon = A['lon_rho'].interp(xi_rho=x, eta_rho=y)
-    lat = A['lat_rho'].interp(xi_rho=x, eta_rho=y)
+    xb, yb = np.broadcast_arrays(x, y)
+    x_da = xr.DataArray(xb)
+    y_da = xr.DataArray(yb)
+    lon = A['lon_rho'].interp(xi_rho=x_da, eta_rho=y_da).values
+    lat = A['lat_rho'].interp(xi_rho=x_da, eta_rho=y_da).values
 
-    # return lon, lat
+    # Return scalars if both x and y are scalars
+    if np.isscalar(x) and np.isscalar(y):
+        lon = float(lon)
+        lat = float(lat)
+
     return lon, lat
 
 
-# Metoden som velges må returnere Dataarray, slik som xy2ll
 def ll2xy(A, lon, lat):
+    """Convert from longitude/latitude to grid coordinates"""
+    # Choose projection method
+    x, y = ll2xy1(A, lon, lat)
+
+    # Return scalars if both lon and lat are scalars
+    if np.isscalar(lon) and np.isscalar(lat):
+        x = float(x)
+        y = float(y)
+
+    return x, y
+
+
+def ll2xy1(A, lon, lat):
     gLon = A['lon_rho'].data.ravel()
     gLat = A['lat_rho'].data.ravel()
     X0 = A['xi_rho'].data
@@ -25,17 +56,11 @@ def ll2xy(A, lon, lat):
     y = griddata((gLon, gLat), gY, (lon, lat), 'linear')
     return x, y
 
-
-# ll2xy2 er raskere (2000 ganger!)
-# Har litt mer trøbbel nær randen.
-# Mer nøyaktig?? I forhold til xy2ll (som selv er unøyaktig)
-# Bedre: sammenligne med eksplisitt kartprojeksjon
-
 # def ll2xy2(A, lon, lat):
 #     y, x = bilin_inv(lon, lat, A['lon_rho'].data, A['lat_rho'].data)
 #     return x, y
 
-# Nøyaktigst, men litt seinere enn ll2xy
+# More accurate, but slower than ll2xy1
 def ll2xy3(A, lon, lat):
     gLon = A['lon_rho'].data.ravel()
     gLat = A['lat_rho'].data.ravel()
@@ -47,5 +72,3 @@ def ll2xy3(A, lon, lat):
     x = griddata((gLon, gLat), gX, (lon, lat), 'cubic')
     y = griddata((gLon, gLat), gY, (lon, lat), 'cubic')
     return x, y
-
-

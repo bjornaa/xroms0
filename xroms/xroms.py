@@ -54,7 +54,7 @@ def roms_dataset(roms_file, subgrid=None):
             Vtransform = 1
         else:
             Vtransform = int(A0.Vtransform)
-        # ta omvei om Cs_r ikke finnes
+        # Should handle different ways to geg  vertical structure
 
         z_rho = depth.sdepth(
             A.h, np.float32(A0.hc), A0.Cs_r,
@@ -124,19 +124,15 @@ def zslice(D, z):
 def subgrid(A, subgrid_spec, stagger='outer'):
     """Make a ROMS xarray Dataset on a horizontal subgrid"""
 
-    # Bestemme om endepunkter skal med eller ikke
-    # Få alternativ, med koordinater
-
-    # Antar at xi_rho og eta_rho alltid er med
+    # Suppese xi_rho and eta_rho allways present
     # imax = len(A.xi_rho)
     # jmax = len(A.eta_rho)
 
-    # Hva med slicing, inner or outer velocity?
-    # Vite hva man har (len(A.xi_u) vs. len(A.xi_rho)
+    # How about slicing, inner or outer velocity
+    # input: depends on (len(A.xi_u) vs. len(A.xi_rho)
 
     x0, x1, y0, y1 = subgrid_spec
 
-    # Mangler test om plass
     sub = dict(xi_rho=slice(x0, x1), eta_rho=slice(y0, y1))
     sub['xi_u'] = np.arange(x0-0.5, x1+1)
     sub['xi_v'] = slice(x0, x1)

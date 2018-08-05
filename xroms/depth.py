@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """Vertical structure functions for ROMS
 
 :func:`sdepth`
@@ -21,8 +19,6 @@
 # Bergen, Norway
 # 2010-09-30
 # -----------------------------------
-
-from __future__ import (absolute_import, division)
 
 import numpy as np
 import xarray as xr
