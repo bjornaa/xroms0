@@ -7,6 +7,9 @@
 build/*
 */__pycache__/*
 
+# Documentation build
+doc/build/*
+
 # Hidden directories
 .*/*
 */.*
