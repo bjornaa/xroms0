@@ -272,7 +272,7 @@ def invert_s(F, value):
     return D, Dm, a
 
 
-class VerticalSlicer:
+class HorizontalSlicer:
     """Reduce to horizontal view by slicing
 
     F = DataArray,  time-independent, first dimension is vertical

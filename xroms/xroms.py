@@ -86,10 +86,10 @@ def roms_dataset(roms_file, subgrid=None):
 
 # ---------------------------------
 def zslice_da(F, z):
-    """Vertical slice of DataArray at fixed depth"""
+    """Horizontal slice of DataArray at fixed depth"""
 
     z0 = -abs(z)
-    vslice = depth.VerticalSlicer(F.z_rho, z0)
+    vslice = depth.HorizontalSlicer(F.z_rho, z0)
     G = vslice(F)
     G['z_rho'] = z0
     return G

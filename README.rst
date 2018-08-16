@@ -1,4 +1,4 @@
-xroms
+XROMS
 =====
 
 xroms is a package of post-processing tools for the ROMS
