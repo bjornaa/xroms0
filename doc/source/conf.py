@@ -111,7 +111,7 @@ htmlhelp_basename = 'xromsdoc'
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     #
-    # 'papersize': 'letterpaper',
+    'papersize': 'a4paper',
 
     # The font size ('10pt', '11pt' or '12pt').
     #
@@ -120,6 +120,12 @@ latex_elements = {
     # Additional stuff for the LaTeX preamble.
     #
     # 'preamble': '',
+    'preamble' : ''.join(['\DeclareUnicodeCharacter{B0}{\textdegree}',
+                          "%\DeclareUnicodeCharacter{27}{'}"
+                          '\DeclareUnicodeCharacter{F8}{\o}',   # ø
+                          '\DeclareUnicodeCharacter{C5}{\AA}',  # Å
+                          ]),
+
 
     # Latex figure (float) alignment
     #
@@ -130,8 +136,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'xroms.tex', 'xroms Documentation',
-     'Bjørn Ådlandsvik', 'manual'),
+    (master_doc, 'xroms.tex', 'XROMS Documentation',
+     r'Bjørn Ådlandsvik <bjorn@imr.no>\\Institute of Marine Research', 'manual'),
 ]
 
 
