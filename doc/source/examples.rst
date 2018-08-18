@@ -6,6 +6,7 @@ Examples
     :maxdepth: 2
     :glob:
 
+    indexing.ipynb
     plotbathy.ipynb
     vertical_slice.ipynb
     geography.ipynb
