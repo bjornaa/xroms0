@@ -8,7 +8,7 @@ Examples
 
     indexing.ipynb
     plotbathy.ipynb
-    vertical_slice.ipynb
+    horizontal_slice.ipynb
     geography.ipynb
     cartopy.ipynb
     section.ipynb

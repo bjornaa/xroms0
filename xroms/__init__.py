@@ -11,8 +11,6 @@ from xroms.xroms import *
 
 from xroms.section import section
 
-from xroms.depth import VerticalSlicer
+from xroms.depth import HorizontalSlicer
 
 from xroms.lonlat import ll2xy, xy2ll
-
-
