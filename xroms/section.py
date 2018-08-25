@@ -9,26 +9,24 @@ def section(A, X, Y):
     Npoints = len(X)
 
     # Make temporary DataArrays for initial interpolations
-    X0 = xr.DataArray(X, dims=['q'], coords=dict(q=np.arange(Npoints)))
-    Y0 = xr.DataArray(Y, dims=['q'], coords=dict(q=np.arange(Npoints)))
+    X0 = xr.DataArray(X, dims=['distance'])
+    Y0 = xr.DataArray(Y, dims=['distance'])
     # Distance between section points
     pm = A.pm.interp(xi_rho=X0, eta_rho=Y0).values
     pn = A.pn.interp(xi_rho=X0, eta_rho=Y0).values
-    dX = 2 * np.diff(X) / (pm[:-1] + pn[1:])
-    dY = 2 * np.diff(Y) / (pm[:-1] + pn[1:])
+    dX = 2 * np.diff(X) / (pm[:-1] + pm[1:])
+    dY = 2 * np.diff(Y) / (pn[:-1] + pn[1:])
     dS = np.sqrt(dX * dX + dY * dY)
     # Cumulative distance along the section
     distance = np.concatenate(([0], np.cumsum(dS))) / 1000.0  # unit = km
+    X0['distance'] = distance
+    Y0['distance'] = distance
 
-    # Make DataArrays, dimension = distance
-    X = xr.DataArray(X, dims=['distance'], coords=dict(distance=distance))
-    Y = xr.DataArray(Y, dims=['distance'], coords=dict(distance=distance))
-
-    # Temporary section Dataset
-    B0 = A.interp(xi_rho=X, eta_rho=Y)
+    # Interpolate to the section
+    B0 = A.interp(xi_rho=X0, eta_rho=Y0)
 
     # Initiate the section Dataset
-    B = xr.Dataset(dict(xi_rho=X, eta_rho=Y, s_rho=B0.s_rho))
+    B = xr.Dataset(dict(xi_rho=X, eta_rho=Y, s_rho=A.s_rho))
 
     # Weights for trapezoidal integration
     V = 0.5*(np.concatenate(([0], dS)) + np.concatenate((dS, [0])))
@@ -39,23 +37,19 @@ def section(A, X, Y):
     B.coords['depth'] = -B0.z_rho
 
     # Scalar data variables
-    B['h'] = B0.h
-    if 'temp' in B0:
-        B['temp'] = B0.temp
-    if 'salt' in B0:
-        B['salt'] = B0.salt
-    if 'zeta' in B0:
-        B['zeta'] = B0.zeta
+    for var in ['h', 'temp', 'salt', 'zeta']:
+        if var in B0:
+            B[var] = B0[var]
 
     # Velocity
     if 'u' in A:
-        B['u'] = A.interp(xi_u=X, eta_u=Y).u
+        B['u'] = A.u.interp(xi_u=X0, eta_u=Y0)
         B = B.drop(['xi_u', 'eta_u'])
     if 'v' in A:
-        B['v'] = A.interp(xi_v=X, eta_v=Y).v
+        B['v'] = A.v.interp(xi_v=X0, eta_v=Y0)
         B = B.drop(['xi_v', 'eta_v'])
 
-    # Normal velocity
+    # Normal velocity ++
     if 'u' in A:
         dX = diff2(X)
         dY = diff2(Y)
@@ -66,12 +60,10 @@ def section(A, X, Y):
         B['u_norm'] = B['u'] * nX + B['v'] * nY
 
     # More vertical structure
-        B.coords['z_w'] = B0.z_w
-        # B['dZ'] = B.z_w.diff(dim='s_w') # wrong dimensions
-        V = B.z_w.values[1:, :] - B.z_w.values[:-1, :]
-        B['dZ'] = xr.DataArray(V, dims=['s_rho', 'distance'])
-
-        B['area'] = B.dZ * B.dS   # Unit = m**2
+    B.coords['z_w'] = B0.z_w
+    V = B.z_w.values[1:, :] - B.z_w.values[:-1, :]
+    B['dZ'] = xr.DataArray(V, dims=['s_rho', 'distance'])
+    B['area'] = B.dZ * B.dS   # Unit = m**2
 
     return B
 
