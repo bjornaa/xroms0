@@ -6,6 +6,9 @@ import xroms
 def section(A, X, Y):
     """Slice a Dataset along a vertical section"""
 
+    if 's_rho' not in A:
+        raise ValueError("Section requires vertical dimension s_rho")
+
     Npoints = len(X)
 
     # Make temporary DataArrays for initial interpolations
@@ -22,10 +25,10 @@ def section(A, X, Y):
     X0['distance'] = distance
     Y0['distance'] = distance
 
-    # Interpolate to the section
+    # Interpolate to the section making an intermediate Dataset
     B0 = A.interp(xi_rho=X0, eta_rho=Y0)
 
-    # Initiate the section Dataset
+    # Initialize the proper section Dataset
     B = xr.Dataset(dict(xi_rho=X, eta_rho=Y, s_rho=A.s_rho))
 
     # Weights for trapezoidal integration
@@ -76,13 +79,3 @@ def diff2(X):
     Y[0] = X[0]
     Y[-1] = X[-1]
     return Y[2:] - Y[:-2]
-
-
-if __name__ == '__main__':
-    A = xroms.roms_dataset('ocean_avg_0014.nc')
-    x0, y0 = 70, 94
-    x1, y1 = 120, 80
-    Npoints = 50
-    X = np.linspace(x0, x1, Npoints)
-    Y = np.linspace(y0, y1, Npoints)
-    B = section(A, X, Y)

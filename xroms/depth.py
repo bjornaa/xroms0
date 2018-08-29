@@ -290,12 +290,12 @@ class HorizontalSlicer:
     def __call__(self, G):
         """G must have same vertical and horizontal dimensions as F"""
 
-        if 'time' in G.dims:
+        if 'ocean_time' in G.dims:
             ntimes = G.shape[0]
             kmax = G.shape[1]
             R = []
             for t in range(ntimes):
-                G0 = G.isel(time=t).values
+                G0 = G.isel(ocean_time=t).values
                 G0 = G0.reshape((kmax, self.M))
                 R0 = (1 - self.a) * G0[self.Dm] + self.a * G0[self.D]
                 R0 = R0.reshape(G.shape[2:])

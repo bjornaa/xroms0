@@ -7,14 +7,15 @@ def roms_dataset(roms_file, subgrid=None):
     """Make a ROMS xarray Dataset from a ROMS file"""
 
     # Variables we care about
-    # grid_vars = ['mask_rho', 'h', 'lon_rho', 'lat_rho', 'pm', 'pn',
-    #              'time', 's_rho', 's_w', 'time']
-    grid_vars = ['mask_rho', 'h', 'pm', 'pn',
-                 'time', 's_rho', 's_w', 'time']
+    grid_vars = ['mask_rho', 'h', 'lon_rho', 'lat_rho', 'pm', 'pn',
+                 'ocean_time', 's_rho', 's_w', 'ocean_time']
     data_vars = ['zeta', 'u', 'v', 'temp', 'salt']
 
     # Read the ROMS file
     A0 = xr.open_dataset(roms_file)
+    # Old ROMS ouptut have dimension 'time' instead of 'ocean_time'
+    if 'time' in A0.dims:
+        A0.rename({'time': 'ocean_time'}, inplace=True)
 
     # Select the variables
     variables = [var for var in grid_vars + data_vars if var in A0]
@@ -36,10 +37,6 @@ def roms_dataset(roms_file, subgrid=None):
         A['eta_u'] = np.arange(jmax)
     if 'eta_v' in A.dims:
         A['eta_v'] = np.arange(0.5, jmax - 1)
-
-    # --- Temporal ---
-    if 'time' in A.dims:
-        A['time'] = A0.ocean_time
 
     # --- Vertical handling ---
     if 's_rho' in A.dims:
@@ -76,10 +73,10 @@ def roms_dataset(roms_file, subgrid=None):
         A.coords['z_rho'] = (('s_rho', 'eta_rho', 'xi_rho'), z_rho)
         A.coords['z_w'] = z_w
 
-        # Add geographic coordinates
-        if 'lon_rho' in A0:
-            A.coords['lat_rho'] = (('eta_rho', 'xi_rho'), A0.lat_rho)
-            A.coords['lon_rho'] = (('eta_rho', 'xi_rho'), A0.lon_rho)
+    # Add geographic coordinates
+    if 'lon_rho' in A0:
+        A.coords['lat_rho'] = (('eta_rho', 'xi_rho'), A0.lat_rho)
+        A.coords['lon_rho'] = (('eta_rho', 'xi_rho'), A0.lon_rho)
 
     return A
 
