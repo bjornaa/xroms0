@@ -1,3 +1,4 @@
+from typing import Union, Sequence, Tuple
 import numpy as np
 from scipy.interpolate import griddata
 import xarray as xr
@@ -13,8 +14,13 @@ import xarray as xr
 # Alternative: work like xarray indexing and interp
 #
 
+ArrayLike = Union[float, Sequence[float]]
+Array = Union[float, np.ndarray]
 
-def xy2ll(A, x, y):
+
+def xy2ll(A: xr.Dataset,
+          x: ArrayLike,
+          y: ArrayLike) -> Tuple[Array, Array]:
     """Convert from grid coordinates to longitude/latitude"""
 
     xb, yb = np.broadcast_arrays(x, y)
@@ -31,7 +37,9 @@ def xy2ll(A, x, y):
     return lon, lat
 
 
-def ll2xy(A, lon, lat):
+def ll2xy(A: xr.Dataset,
+          lon: ArrayLike,
+          lat: ArrayLike) -> Tuple[Array, Array]:
     """Convert from longitude/latitude to grid coordinates"""
     # Choose projection method
     x, y = ll2xy1(A, lon, lat)
@@ -44,7 +52,9 @@ def ll2xy(A, lon, lat):
     return x, y
 
 
-def ll2xy1(A, lon, lat):
+def ll2xy1(A: xr.Dataset,
+           lon: ArrayLike,
+           lat: ArrayLike) -> Tuple[Array, Array]:
     gLon = A['lon_rho'].data.ravel()
     gLat = A['lat_rho'].data.ravel()
     X0 = A['xi_rho'].data
@@ -60,8 +70,11 @@ def ll2xy1(A, lon, lat):
 #     y, x = bilin_inv(lon, lat, A['lon_rho'].data, A['lat_rho'].data)
 #     return x, y
 
+
 # More accurate, but slower than ll2xy1
-def ll2xy3(A, lon, lat):
+def ll2xy3(A: xr.Dataset,
+           lon: ArrayLike,
+           lat: ArrayLike) -> Tuple[Array, Array]:
     gLon = A['lon_rho'].data.ravel()
     gLat = A['lat_rho'].data.ravel()
     X0 = A['xi_rho'].data

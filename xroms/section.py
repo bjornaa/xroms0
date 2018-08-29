@@ -1,9 +1,12 @@
+from typing import Sequence
 import numpy as np
 import xarray as xr
 import xroms
 
 
-def section(A, X, Y):
+def section(A: xr.Dataset,
+            X: Sequence[float],
+            Y: Sequence[float]) -> xr.Dataset:
     """Slice a Dataset along a vertical section"""
 
     if 's_rho' not in A:
@@ -71,7 +74,7 @@ def section(A, X, Y):
     return B
 
 
-def diff2(X):
+def diff2(X: np.ndarray) -> np.ndarray:
     """Central differences of a sequence"""
     n = len(X)
     Y = np.empty(n+2, dtype=X.dtype)

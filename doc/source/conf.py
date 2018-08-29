@@ -120,11 +120,11 @@ latex_elements = {
     # Additional stuff for the LaTeX preamble.
     #
     # 'preamble': '',
-    'preamble' : ''.join(['\DeclareUnicodeCharacter{B0}{\sphinxunichar{00B0}}',
-                          "%\DeclareUnicodeCharacter{27}{'}"
-                          '\DeclareUnicodeCharacter{F8}{\o}',   # ø
-                          '\DeclareUnicodeCharacter{C5}{\AA}',  # Å
-                          ]),
+    'preamble': ''.join(['\DeclareUnicodeCharacter{B0}{\sphinxunichar{00B0}}',
+                         "%\DeclareUnicodeCharacter{27}{'}"
+                         '\DeclareUnicodeCharacter{F8}{\o}',   # ø
+                         '\DeclareUnicodeCharacter{C5}{\AA}',  # Å
+                         ]),
 
 
     # Latex figure (float) alignment

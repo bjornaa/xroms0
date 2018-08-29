@@ -20,8 +20,11 @@
 # 2010-09-30
 # -----------------------------------
 
+from typing import Union, List
 import numpy as np
 import xarray as xr
+
+Surface = Union[float, np.ndarray]
 
 
 def sdepth(H, Hc, C, stagger="rho", Vtransform=1):
@@ -221,7 +224,7 @@ def s_stretch(N, theta_s, theta_b, stagger='rho', Vstretching=1):
         raise ValueError("Unknown Vstretching")
 
 
-def invert_s(F, value):
+def invert_s(F: xr.DataArray, value: Surface):
     """Return highest (shallowest) s-value such that F(s,...) = value
 
     F = DataArray with z_rho as coordinate
@@ -282,31 +285,31 @@ class HorizontalSlicer:
 
     """
 
-    def __init__(self, F, value):
+    def __init__(self, F: xr.DataArray, value: Surface) -> None:
         self.D, self.Dm, self.a = invert_s(F, value)
         self.M = len(self.a)
         # self.dims = F.dims
 
-    def __call__(self, G):
+    def __call__(self, G: xr.DataArray) -> xr.DataArray:
         """G must have same vertical and horizontal dimensions as F"""
 
         if 'ocean_time' in G.dims:
             ntimes = G.shape[0]
             kmax = G.shape[1]
-            R = []
+            R: List[np.ndarray] = []
             for t in range(ntimes):
                 G0 = G.isel(ocean_time=t).values
                 G0 = G0.reshape((kmax, self.M))
                 R0 = (1 - self.a) * G0[self.Dm] + self.a * G0[self.D]
                 R0 = R0.reshape(G.shape[2:])
                 R.append(R0)
-            R = np.array(R)
+            R1 = np.array(R)
         else:
             kmax = G.shape[0]
             G0 = G.values
             G0 = G0.reshape((kmax, self.M))
-            R = (1 - self.a) * G0[self.Dm] + self.a * G0[self.D]
-            R = R.reshape(G.shape[1:])
+            R1 = (1 - self.a) * G0[self.Dm] + self.a * G0[self.D]
+            R1 = R.reshape(G.shape[1:])
 
         # Return a DataArray
         # Should have something on z_rho?
@@ -315,4 +318,4 @@ class HorizontalSlicer:
         coords = {dim: G.coords[dim] for dim in dims}
         coords['lon_rho'] = G.coords['lon_rho']
         coords['lat_rho'] = G.coords['lat_rho']
-        return xr.DataArray(R, dims=dims, coords=coords, attrs=G.attrs)
+        return xr.DataArray(R1, dims=dims, coords=coords, attrs=G.attrs)

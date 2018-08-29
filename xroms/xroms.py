@@ -1,14 +1,15 @@
+from typing import Tuple, Dict, Union, Sequence
 import numpy as np
 import xarray as xr
 from . import depth
 
 
-def roms_dataset(roms_file, subgrid=None):
+def roms_dataset(roms_file: str) -> xr.Dataset:
     """Make a ROMS xarray Dataset from a ROMS file"""
 
     # Variables we care about
     grid_vars = ['mask_rho', 'h', 'lon_rho', 'lat_rho', 'pm', 'pn',
-                 'ocean_time', 's_rho', 's_w', 'ocean_time']
+                 'ocean_time', 's_rho', 's_w']
     data_vars = ['zeta', 'u', 'v', 'temp', 'salt']
 
     # Read the ROMS file
@@ -82,7 +83,7 @@ def roms_dataset(roms_file, subgrid=None):
 
 
 # ---------------------------------
-def zslice_da(F, z):
+def zslice_da(F: xr.DataArray, z: float) -> xr.DataArray:
     """Horizontal slice of DataArray at fixed depth"""
 
     z0 = -abs(z)
@@ -92,7 +93,7 @@ def zslice_da(F, z):
     return G
 
 
-def zslice_ds(A, z):
+def zslice_ds(A: xr.Dataset, z: float) -> xr.Dataset:
     """Horizontal slice av ROMS Dataset at fixed depth"""
     # May be unnecessary, hard to get enough flexibility?
 
@@ -118,7 +119,10 @@ def zslice(D, z):
 
 
 # ------------------------------------------------------------
-def subgrid(A, subgrid_spec, stagger='outer'):
+def subgrid(
+    A: xr.Dataset,
+    subgrid_spec: Tuple[int, int, int, int],
+    stagger: str='outer') -> xr.Dataset:
     """Make a ROMS xarray Dataset on a horizontal subgrid"""
 
     # Suppese xi_rho and eta_rho allways present
@@ -130,26 +134,23 @@ def subgrid(A, subgrid_spec, stagger='outer'):
 
     x0, x1, y0, y1 = subgrid_spec
 
-    sub = dict(xi_rho=slice(x0, x1), eta_rho=slice(y0, y1))
-    sub['xi_u'] = np.arange(x0-0.5, x1+1)
-    sub['xi_v'] = slice(x0, x1)
-    sub['eta_u'] = slice(y0, y1)
-    sub['eta_v'] = np.arange(y0-0.5, y1+1)
+    sub = {'xi_rho': range(x0, x1),
+           'eta_rho': range(y0, y1),
+           'xi_u': np.arange(x0-0.5, x1+1),
+           'xi_v':range(x0, x1),
+           'eta_u': range(y0, y1),
+           'eta_v': np.arange(y0-0.5, y1+1)}
 
     return A.sel(**sub)
 
 
-def get_stagger(A):
+def get_stagger(A: xr.Dataset) -> Union[str, None]:
+    ret_value = None
     if 'xi_rho' in A.dims:
         len_rho = len(A.xi_rho)
         len_u = len(A.xi_u)
         if len_rho > len_u:
-            return 'inner'
+            ret_value = 'inner'
         else:
-            return 'outer'
-
-
-if __name__ == '__main__':
-    A = roms_dataset('ocean_avg_0014.nc')
-
-    # B = zslice(A, 'temp', 50)
+            ret_value = 'outer'
+    return ret_value
