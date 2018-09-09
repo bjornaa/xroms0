@@ -309,7 +309,7 @@ class HorizontalSlicer:
             G0 = G.values
             G0 = G0.reshape((kmax, self.M))
             R1 = (1 - self.a) * G0[self.Dm] + self.a * G0[self.D]
-            R1 = R.reshape(G.shape[1:])
+            R1 = R1.reshape(G.shape[1:])
 
         # Return a DataArray
         # Should have something on z_rho?
