@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-# -*- coding: utf-8 -*-
 
 """Extract a closed coast line
 
@@ -28,7 +27,7 @@ try:
 except ImportError:
     print("Basemap is needed for make_coast")
     raise SystemExit(-1)
-    
+
 
 def main():
     """Main function if used as a script"""
