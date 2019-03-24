@@ -63,9 +63,9 @@ def sdepth(H, Hc, C, stagger="rho", Vtransform=1):
     C = np.asarray(C)
     N = len(C)
     outshape = (N,) + Hshape  # Shape of output
-    if stagger == 'rho':
+    if stagger == "rho":
         S = -1.0 + (0.5 + np.arange(N)) / N  # Unstretched coordinates
-    elif stagger == 'w':
+    elif stagger == "w":
         S = np.linspace(-1.0, 0.0, N)
     else:
         raise ValueError("stagger must be 'rho' or 'w'")
@@ -77,7 +77,7 @@ def sdepth(H, Hc, C, stagger="rho", Vtransform=1):
 
     elif Vtransform == 2:  # New transform by Shchepetkin
         N = Hc * S[:, None] + np.outer(C, H)
-        D = (1.0 + Hc / H)
+        D = 1.0 + Hc / H
         return (N / D).reshape(outshape)
 
     else:
@@ -94,7 +94,7 @@ def sdepth_w(H, Hc, cs_w):
     use *sdepth(H, Hc, cs_w, stagger='w')* instead
 
     """
-    return sdepth(H, Hc, cs_w, stagger='w')
+    return sdepth(H, Hc, cs_w, stagger="w")
 
 
 # ------------------------------------------
@@ -134,7 +134,7 @@ def zslice2(F, S, z):
 
     F = np.asarray(F)
     S = np.asarray(S)
-    z = np.asarray(z, dtype='float')
+    z = np.asarray(z, dtype="float")
     Fshape = F.shape  # Save original shape
     if S.shape != Fshape:
         raise ValueError("F and z_r must have same shape")
@@ -160,7 +160,7 @@ def zslice2(F, S, z):
     # construct index array tuples D and Dm such that
     #   F[D][i]  = F[C[i], i]
     #   F[Dm][i] = F[C[i]-1, i]
-    I = np.arange(M, dtype='int')
+    I = np.arange(M, dtype="int")
     D = (C, I)
     Dm = (C - 1, I)
 
@@ -180,7 +180,7 @@ def zslice2(F, S, z):
 # -----------------------------------------------
 
 
-def s_stretch(N, theta_s, theta_b, stagger='rho', Vstretching=1):
+def s_stretch(N, theta_s, theta_b, stagger="rho", Vstretching=1):
     """Compute a s-level stretching array
 
     *N* : Number of vertical levels
@@ -195,7 +195,7 @@ def s_stretch(N, theta_s, theta_b, stagger='rho', Vstretching=1):
 
     """
 
-    if stagger == 'rho':
+    if stagger == "rho":
         S = -1.0 + (0.5 + np.arange(N)) / N
     elif stagger == "w":
         S = np.linspace(-1.0, 0.0, N + 1)
@@ -205,14 +205,15 @@ def s_stretch(N, theta_s, theta_b, stagger='rho', Vstretching=1):
     if Vstretching == 1:
         cff1 = 1.0 / np.sinh(theta_s)
         cff2 = 0.5 / np.tanh(0.5 * theta_s)
-        return ((1.0 - theta_b) * cff1 * np.sinh(theta_s * S)
-                + theta_b * (cff2 * np.tanh(theta_s * (S + 0.5)) - 0.5))
+        return (1.0 - theta_b) * cff1 * np.sinh(theta_s * S) + theta_b * (
+            cff2 * np.tanh(theta_s * (S + 0.5)) - 0.5
+        )
 
     elif Vstretching == 2:
         a, b = 1.0, 1.0
         Csur = (1 - np.cosh(theta_s * S)) / (np.cosh(theta_s) - 1)
         Cbot = np.sinh(theta_b * (S + 1)) / np.sinh(theta_b) - 1
-        mu = (S + 1)**a * (1 + (a / b) * (1 - (S + 1)**b))
+        mu = (S + 1) ** a * (1 + (a / b) * (1 - (S + 1) ** b))
         return mu * Csur + (1 - mu) * Cbot
 
     elif Vstretching == 4:
@@ -245,7 +246,7 @@ def invert_s(F: xr.DataArray, value: Surface):
     F0 = F.values
     # z_rho = F.z_rho.values
     # s_rho = F.s_rho.values
-    val = np.asarray(val, dtype='float')
+    val = np.asarray(val, dtype="float")
     # Fshape = F.shape  # Save original shape
     # if val.shape and val.shape != Fshape[1:]:
     #     raise ValueError("z must be scalar or have shape = F.shape[1:]")
@@ -293,7 +294,7 @@ class HorizontalSlicer:
     def __call__(self, G: xr.DataArray) -> xr.DataArray:
         """G must have same vertical and horizontal dimensions as F"""
 
-        if 'ocean_time' in G.dims:
+        if "ocean_time" in G.dims:
             ntimes = G.shape[0]
             kmax = G.shape[1]
             R: List[np.ndarray] = []
@@ -314,8 +315,8 @@ class HorizontalSlicer:
         # Return a DataArray
         # Should have something on z_rho?
         dims = list(G.dims)
-        dims.remove('s_rho')
+        dims.remove("s_rho")
         coords = {dim: G.coords[dim] for dim in dims}
-        coords['lon_rho'] = G.coords['lon_rho']
-        coords['lat_rho'] = G.coords['lat_rho']
+        coords["lon_rho"] = G.coords["lon_rho"]
+        coords["lat_rho"] = G.coords["lat_rho"]
         return xr.DataArray(R1, dims=dims, coords=coords, attrs=G.attrs)

@@ -2,6 +2,7 @@ from typing import Union, Sequence, Tuple
 import numpy as np
 from scipy.interpolate import griddata
 import xarray as xr
+
 # from sample import bilin_inv
 
 # Desired behavior:
@@ -18,16 +19,14 @@ ArrayLike = Union[float, Sequence[float]]
 Array = Union[float, np.ndarray]
 
 
-def xy2ll(A: xr.Dataset,
-          x: ArrayLike,
-          y: ArrayLike) -> Tuple[Array, Array]:
+def xy2ll(A: xr.Dataset, x: ArrayLike, y: ArrayLike) -> Tuple[Array, Array]:
     """Convert from grid coordinates to longitude/latitude"""
 
     xb, yb = np.broadcast_arrays(x, y)
     x_da = xr.DataArray(xb)
     y_da = xr.DataArray(yb)
-    lon = A['lon_rho'].interp(xi_rho=x_da, eta_rho=y_da).values
-    lat = A['lat_rho'].interp(xi_rho=x_da, eta_rho=y_da).values
+    lon = A["lon_rho"].interp(xi_rho=x_da, eta_rho=y_da).values
+    lat = A["lat_rho"].interp(xi_rho=x_da, eta_rho=y_da).values
 
     # Return scalars if both x and y are scalars
     if np.isscalar(x) and np.isscalar(y):
@@ -37,9 +36,7 @@ def xy2ll(A: xr.Dataset,
     return lon, lat
 
 
-def ll2xy(A: xr.Dataset,
-          lon: ArrayLike,
-          lat: ArrayLike) -> Tuple[Array, Array]:
+def ll2xy(A: xr.Dataset, lon: ArrayLike, lat: ArrayLike) -> Tuple[Array, Array]:
     """Convert from longitude/latitude to grid coordinates"""
     # Choose projection method
     x, y = ll2xy1(A, lon, lat)
@@ -52,19 +49,18 @@ def ll2xy(A: xr.Dataset,
     return x, y
 
 
-def ll2xy1(A: xr.Dataset,
-           lon: ArrayLike,
-           lat: ArrayLike) -> Tuple[Array, Array]:
-    gLon = A['lon_rho'].data.ravel()
-    gLat = A['lat_rho'].data.ravel()
-    X0 = A['xi_rho'].data
-    Y0 = A['eta_rho'].data
+def ll2xy1(A: xr.Dataset, lon: ArrayLike, lat: ArrayLike) -> Tuple[Array, Array]:
+    gLon = A["lon_rho"].data.ravel()
+    gLat = A["lat_rho"].data.ravel()
+    X0 = A["xi_rho"].data
+    Y0 = A["eta_rho"].data
     gX, gY = np.meshgrid(X0, Y0)
     gX = gX.ravel()
     gY = gY.ravel()
-    x = griddata((gLon, gLat), gX, (lon, lat), 'linear')
-    y = griddata((gLon, gLat), gY, (lon, lat), 'linear')
+    x = griddata((gLon, gLat), gX, (lon, lat), "linear")
+    y = griddata((gLon, gLat), gY, (lon, lat), "linear")
     return x, y
+
 
 # def ll2xy2(A, lon, lat):
 #     y, x = bilin_inv(lon, lat, A['lon_rho'].data, A['lat_rho'].data)
@@ -72,16 +68,14 @@ def ll2xy1(A: xr.Dataset,
 
 
 # More accurate, but slower than ll2xy1
-def ll2xy3(A: xr.Dataset,
-           lon: ArrayLike,
-           lat: ArrayLike) -> Tuple[Array, Array]:
-    gLon = A['lon_rho'].data.ravel()
-    gLat = A['lat_rho'].data.ravel()
-    X0 = A['xi_rho'].data
-    Y0 = A['eta_rho'].data
+def ll2xy3(A: xr.Dataset, lon: ArrayLike, lat: ArrayLike) -> Tuple[Array, Array]:
+    gLon = A["lon_rho"].data.ravel()
+    gLat = A["lat_rho"].data.ravel()
+    X0 = A["xi_rho"].data
+    Y0 = A["eta_rho"].data
     gX, gY = np.meshgrid(X0, Y0)
     gX = gX.ravel()
     gY = gY.ravel()
-    x = griddata((gLon, gLat), gX, (lon, lat), 'cubic')
-    y = griddata((gLon, gLat), gY, (lon, lat), 'cubic')
+    x = griddata((gLon, gLat), gX, (lon, lat), "cubic")
+    y = griddata((gLon, gLat), gY, (lon, lat), "cubic")
     return x, y
