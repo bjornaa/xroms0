@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# /usr/bin/env python
 
 """Extract a regional coast line as a WKB file
 
@@ -24,7 +24,7 @@ def main():
     coastfile = "coast.wkb"
 
     # Choose between c, l, i, h, f resolutions
-    GSHHSres = 'i'
+    GSHHSres = "i"
 
     # Define regional domain
     lonmin, lonmax, latmin, latmax = -21, 18, 47, 67
@@ -32,7 +32,25 @@ def main():
     coast2wkb(**locals())
 
 
-def coast2wkb(lonmin, lonmax, latmin, latmax, GSHHSres, coastfile):
+def coast2wkb(
+    lonmin: float,
+    lonmax: float,
+    latmin: float,
+    latmax: float,
+    GSHHSres: str,
+    coastfile: str,
+) -> None:
+
+    """Extract a coast line from GSHHS and store as wkb-file
+
+    Parameters
+    ----------
+        lonmin, lonmax : Longitude limitation
+        latmin, latmax : Latitude limitation
+        GSSHHSres : GSHHS resolution 'c', 'l', 'i', 'h', 'f'
+        coastfile : Name of output wkb-file.
+
+    """
 
     # Global cartopy feature from GSHHS
     gfeat = cfeature.GSHHSFeature(scale=GSHHSres)
@@ -46,7 +64,7 @@ def coast2wkb(lonmin, lonmax, latmin, latmax, GSHHSres, coastfile):
     B = (frame.intersection(p) for p in coll if frame.intersects(p))
 
     # Save to file
-    with open(coastfile, mode='wb') as fp:
+    with open(coastfile, mode="wb") as fp:
         wkb.dump(geom.MultiPolygon(flatten(B)), fp, output_dimension=2)
 
 
@@ -62,5 +80,5 @@ def flatten(B):
                 yield q
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
