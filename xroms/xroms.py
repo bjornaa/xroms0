@@ -1,10 +1,10 @@
-from typing import Tuple, Dict, Union, Sequence
+from typing import Tuple, Dict, Union, Sequence, Any
 import numpy as np
 import xarray as xr
 from . import depth
 
 
-def roms_dataset(roms_file: str) -> xr.Dataset:
+def roms_dataset(roms_file: str, **kwargs: Dict[str, Any]) -> xr.Dataset:
     """Make a ROMS xarray Dataset from a ROMS output file"""
 
     # Variables we care about
@@ -25,7 +25,7 @@ def roms_dataset(roms_file: str) -> xr.Dataset:
     data_vars = ["zeta", "u", "v", "temp", "salt"]
 
     # Read the ROMS file
-    A0 = xr.open_dataset(roms_file)
+    A0 = xr.open_dataset(roms_file, **kwargs)
     # Old ROMS output have dimension 'time' instead of 'ocean_time'
     if "time" in A0.dims:
         A0 = A0.rename({"time": "ocean_time"})
@@ -116,7 +116,7 @@ def roms_dataset(roms_file: str) -> xr.Dataset:
 
 # ----------------------------
 
-def roms_mfdataset(roms_file: str) -> xr.Dataset:
+def roms_mfdataset(roms_file: str, **kwargs: Dict[str, Any]) -> xr.Dataset:
     """Make a ROMS xarray Dataset from a ROMS output file"""
 
     # Variables we care about
@@ -137,7 +137,8 @@ def roms_mfdataset(roms_file: str) -> xr.Dataset:
     data_vars = ["zeta", "u", "v", "temp", "salt"]
 
     # Read the ROMS file
-    A0 = xr.open_mfdataset(roms_file, combine='nested', concat_dim="ocean_time", data_vars='minimal')
+    #A0 = xr.open_mfdataset(roms_file, combine='nested', concat_dim="ocean_time", data_vars='minimal')
+    A0 = xr.open_mfdataset(roms_file, combine='by_coords', data_vars='minimal', **kwargs)
     # Old ROMS output have dimension 'time' instead of 'ocean_time'
     if "time" in A0.dims:
         A0 = A0.rename({"time": "ocean_time"})
