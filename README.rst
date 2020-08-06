@@ -15,7 +15,7 @@ This repository has been deprecated. Its functionality will be moved to
 and further development will be done in Rob Hetlands
 `xroms <https://github.com/hetland/xroms>`_ package.
 The repository will stay at github but the name has changed from `xroms` to `xroms0`.
-The name `xroms` will be used for a clone of the Hetland package.
+The name `xroms` will be used for a fork of the Hetland package.
 
   Bjørn Ådlandsvik <bjorn at imr.no>
   Institute of Marine Research
