@@ -1,7 +1,7 @@
 from typing import Sequence
 import numpy as np
 import xarray as xr
-import xroms
+import xroms0
 
 
 def section(A: xr.Dataset, X: Sequence[float], Y: Sequence[float]) -> xr.Dataset:

@@ -7,7 +7,7 @@
 # Institute of Marine Research
 # ----------------------------------
 
-from xroms.xroms import *
-from xroms.section import section
-from xroms.depth import HorizontalSlicer
-from xroms.lonlat import ll2xy, xy2ll
+from xroms0.xroms import *
+from xroms0.section import section
+from xroms0.depth import HorizontalSlicer
+from xroms0.lonlat import ll2xy, xy2ll
