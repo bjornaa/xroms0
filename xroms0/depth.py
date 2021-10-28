@@ -317,6 +317,7 @@ class HorizontalSlicer:
         dims = list(G.dims)
         dims.remove("s_rho")
         coords = {dim: G.coords[dim] for dim in dims}
+
         coords["lon_rho"] = G.coords["lon_rho"]
         coords["lat_rho"] = G.coords["lat_rho"]
         return xr.DataArray(R1, dims=dims, coords=coords, attrs=G.attrs)

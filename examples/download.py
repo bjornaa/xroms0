@@ -18,7 +18,6 @@ datafile = 'ocean_avg_0014.nc'
 gzipped_file = datafile + '.gz'
 
 # --- Download by ftp ---
-# TODO: make progress bar
 print('Downloading', gzipped_file)
 f0 = io.BytesIO()
 with ftplib.FTP(ftp_site) as ftp:
@@ -27,7 +26,7 @@ with ftplib.FTP(ftp_site) as ftp:
     ftp.retrbinary('RETR ' + gzipped_file, f0.write)
 
 # --- gunzip the file ---
-print('Decompressing',  datafile)
+print('Decompressing', datafile)
 f0.seek(0)
 with open(datafile, 'wb') as outfile:
     outfile.write(gzip.decompress(f0.read()))

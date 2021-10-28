@@ -79,6 +79,7 @@ def roms_dataset(roms_file: str) -> xr.Dataset:
         # if not present in the file
 
         z_rho = depth.sdepth(
+            # A.h, np.float32(A0.hc), A0.Cs_r, stagger="rho", Vtransform=Vtransform
             A.h, np.float32(A0.hc), A0.Cs_r, stagger="rho", Vtransform=Vtransform
         )
         z_rho = xr.DataArray(
@@ -104,13 +105,18 @@ def roms_dataset(roms_file: str) -> xr.Dataset:
             },
         )
 
-        A.coords["z_rho"] = (("s_rho", "eta_rho", "xi_rho"), z_rho)
-        A.coords["z_w"] = z_w
+        # A["z_w"] = z_w
+        # ["z_rho"] = z_rho
+        A = A.assign_coords(dict(z_rho=z_rho, z_w=z_w))
+        # A.assign_coords(z_w=z_w)
 
     # Add geographic coordinates
     if "lon_rho" in A0:
-        A.coords["lat_rho"] = (("eta_rho", "xi_rho"), A0.lat_rho)
-        A.coords["lon_rho"] = (("eta_rho", "xi_rho"), A0.lon_rho)
+        A = A.assign_coords(dict(lon_rho=A0.lon_rho, lat_rho=A0.lat_rho))
+        #A = A.assign_coords(lon_rho=A0.lon_rho)
+        #A = A.assign_coords(lat_rho=A0.lat_rho)
+        #A["lon_rho"] = A0.lon_rho
+        #A["lat_rho"] = A0.lat_rho
 
     return A
 
@@ -122,7 +128,7 @@ def zslice_da(F: xr.DataArray, z: float) -> xr.DataArray:
     z0 = -abs(z)
     vslice = depth.HorizontalSlicer(F.z_rho, z0)
     G = vslice(F)
-    G["z_rho"] = z0
+    # G["z_rho"] = z0
     return G
 
 
