@@ -24,7 +24,7 @@ from typing import Union, List
 import numpy as np
 import xarray as xr
 
-Surface = Union[float, np.ndarray]
+Surface = Union[float, np.ndarray]  # Surface z = ....
 
 
 def sdepth(H, Hc, C, stagger="rho", Vtransform=1):
@@ -220,6 +220,17 @@ def s_stretch(N, theta_s, theta_b, stagger="rho", Vstretching=1):
         C = (1 - np.cosh(theta_s * S)) / (np.cosh(theta_s) - 1)
         C = (np.exp(theta_b * C) - 1) / (1 - np.exp(-theta_b))
         return C
+
+    elif Vstretching == 5:
+        if stagger == "w":
+            K = np.arange(N + 1)
+        if stagger == "rho":
+            K = np.arange(0.5, N + 1)
+        S1 = -(K * K - 2 * K * N + K + N * N - N) / (N * N - N)
+        S2 = -0.01 * (K * K - K * N) / (1 - N)
+        S = S1 + S2
+        C = (1 - np.cosh(theta_s * S)) / (np.cosh(theta_s) - 1)
+        C = (np.exp(theta_b * C) - 1) / (1 - np.exp(-theta_b))
 
     else:
         raise ValueError("Unknown Vstretching")
